@@ -35,10 +35,11 @@
     <script language="javascript" type="text/javascript" src="scripts/util/underscore-min.js"></script>
     <script language="javascript" type="text/javascript" src="scripts/util/date.format.js"></script>
     <script language="javascript" type="text/javascript" src="scripts/util/date.js"></script>
+    <script language="javascript" type="text/javascript" src="scripts/util/array.js"></script>
     <script language="javascript" type="text/javascript" src="scripts/jquery/jquery.datePicker-2.1.2.js"></script>
     <script language="javascript" type="text/javascript" src="scripts/jquery/jquery.tablesorter.min.js"></script>
     <script language="javascript" type="text/javascript" src="http://www.google.com/jsapi"></script>
-    <script type="text/javascript" src="scripts/app.js"></script>
+    <script language="javascript" type="text/javascript" src="scripts/app.js"></script>
   </head>
   <body>
     <h2>Akka Web Sample Exercise: NYSE Data Analysis</h2>
@@ -54,8 +55,8 @@
         Start: <input type="text" name="start" id="start" class="date-pick popup submit-on-CR" />
         End: <input type="text" name="end" id="end" class="date-pick popup submit-on-CR" />
         <input class="control" id="go" type="button" onclick="serverControl('stats');" value="Go!" />
+        <input class="control" id="unknown" type="button" onclick="serverControl('list_instruments');" value="List Stocks"/>
         <input class="control" id="ping" type="button" onclick="serverControl('ping');" value="Ping!"/>
-        <input class="control" id="unknown" type="button" onclick="serverControl('bogus');" value="Bogus"/>
       </div>
     </div>
     <span class="message-box" id="message"></span>
@@ -64,9 +65,6 @@
       <div id='finance-display' class='hidden'>
         <table id='finance-table' class='tablesorter rounded-corners'>
           <thead>
-            <tr class="finance-head">
-              <th class='top-left-rounded-corners'>Symbol</th><th>Date</th><th class='top-right-rounded-corners'>Value</th>
-            </tr>
           </thead>
           <tbody></tbody>
         </table>

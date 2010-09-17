@@ -5,6 +5,8 @@ import se.scalablesolutions.akka.config.Config.config
 import se.scalablesolutions.akka.util.Logging
 import scala.collection.immutable.SortedSet
 import org.joda.time._
+import net.liftweb.json.JsonAST._
+import net.liftweb.json.JsonDSL._
 import com.osinka.mongodb._
 import com.mongodb.{BasicDBObject, DBCursor, Mongo, MongoException}
 
@@ -49,16 +51,31 @@ class MongoDBDataStore(
     case Some(dbo) => Some(JSONRecord(dbo.toMap))
   }
   
-  def range(from: DateTime, until: DateTime, maxNum: Int): Iterable[JSONRecord] = try {
+  def range(from: DateTime, to: DateTime, maxNum: Int): Iterable[JSONRecord] = try {
     val query = new BasicDBObject()
     query.put(JSONRecord.timestampKey, 
-              new BasicDBObject("$gte", dateTimeToAnyValue(from)).append("$lt", dateTimeToAnyValue(until)))
+              new BasicDBObject("$gte", dateTimeToAnyValue(from)).append("$lte", dateTimeToAnyValue(to)))
     val cursor = collection.find(query).sort(new BasicDBObject(JSONRecord.timestampKey, 1))
     log.info("db name: query, cursor.count, maxNum: "+collection.getFullName+", "+query+", "+cursor.count+", "+maxNum)
     if (cursor.count > maxNum)
       cursorToRecords(cursor.skip(cursor.count - maxNum).limit(maxNum))
     else
       cursorToRecords(cursor)
+  } catch {
+    case th => 
+      log.error("MongoDB Exception: ", th)
+      throw th
+  }
+  
+  // Hack!
+  def getInstrumentList(prefix: String): Iterable[JSONRecord] = try {
+    val list = collection.distinct(prefix)
+    val buff = new scala.collection.mutable.ArrayBuffer[String]()
+    var iter = list.iterator
+    while (iter.hasNext) {
+      buff += iter.next.toString
+    }
+    List(JSONRecord(("letter" -> prefix) ~ ("symbols" -> buff)))
   } catch {
     case th => 
       log.error("MongoDB Exception: ", th)

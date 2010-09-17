@@ -54,18 +54,65 @@ Also, before you run the script, you'll need to install the Scala distribution (
  
 (**Note:** there is `bin/data-import.bat` script for windows that attempts to do the same steps, but it is untested! Feedback is welcome!)
 
-When `bin/data-import.sh` is finished, you should have 52 collections in `stocks_yahoo_NYSE`, of the form `A_prices`, `A_dividends`, ... `Z_prices`, `Z_dividends`. To get a sense of the installed data, start the `mongo` interactive shell (it's in the same directory as `mongod`) and run these commands.
+When `bin/data-import.sh` is finished, you should have 52 collections in `stocks_yahoo_NYSE`, of the form `A_prices`, `A_dividends`, ... `Z_prices`, `Z_dividends`. To get a sense of the installed data, start the `mongo` interactive shell (it's in the same directory as `mongod`) and run the following commands. The `>` is the `mongo` prompt, which you don't type, and the rest of the lines are the output that I got in response. Your results should be similar, but not identical.
 
-    show dbs
-    use stocks_yahoo_NYSE
-    db.A_prices.findOne()
-    db.A_dividends.findOne()
+    > show dbs
+    admin
+    local
+    play
+    stocks_yahoo_NYSE
     
-Repeat the last two commands for any of the collections that interest you. Here's a command that is also very useful; it shows all the stock symbols in a given table.
+    > use stocks_yahoo_NYSE
+    switched to db stocks_yahoo_NYSE
+    
+    > db.A_prices.count()              
+    693733
+    
+    > db.A_prices.findOne()
+    {
+      "_id" : ObjectId("4c89b27c48bc853f23fc87ae"),
+      "close" : 27.13,
+      "high" : 27.4,
+      "date" : "2008-03-07",
+      "stock_symbol" : "ATU",
+      "exchange" : "NYSE",
+      "volume" : 591000,
+      "adj close" : 27.13,
+      "low" : 26.18,
+      "open" : 26.18
+    }
+    
+    > db.A_dividends.count()           
+    8322
+    
+    > db.A_dividends.findOne()
+    {
+      "_id" : ObjectId("4c89b2ab48bc853f24071d93"),
+      "date" : "2007-09-26",
+      "dividends" : 0.04,
+      "stock_symbol" : "ATU",
+      "exchange" : "NYSE"
+    }
+    
+    
+Repeat the last `count()` and `findOne()` commands for any of the collections that interest you. Here's a command that is also very useful; it shows all the stock symbols in a given table. It's useful because each stock has one entry for every day that it was traded.
 
-    db.A_prices.distinct("stock_symbol")  
+    > db.A_prices.distinct("stock_symbol")  
+    [
+      "AA",
+      "AAI",
+      "AAP",
+      "AAR",
+      ...
+      "AZ",
+      "AZN",
+      "AZO",
+      "AZZ"
+    ]
+            
+If you encounter any problems with these commands, the data import might have failed. If you want to try again with a clean slate, the commands `db.dropDatabase()` will drop the whole database you're in (e.g., `stocks_yahoo_NYSE`), while a command like `db.A_prices.drop()` will drop just the `A_prices` collection.
 
-If you encounter any problems with these commands, the data import might have failed.
+**NOTE:** To get help in the `mongo` console, start with `help()`. 
 
 Finally, the last message of the import script tells you to delete the `datatmp` directory. This is where temporary data files were staged. The script doesn't delete them automatically, in case you need to do some diagnostics...
 
@@ -90,11 +137,13 @@ While we're at it, you can stop or restart jetty thusly:
     jetty-stop         # stop the Jetty web server
     jetty-restart      # restart the Jetty web server
 
-In the web UI, enter a comma-separate list of NYSE stock symbols, start and end dates, then click the `Go!` button (or hit `return` in one of the text fields). The results are presented below in a table. If no data is returned, the table will indicate that fact. Otherwise, you'll see a potentially long table of data. You can click on the column headers to sort the data by that column. Click again to reverse the sort.
+In the web UI, enter a comma-separate list of NYSE stock symbols, start and end dates, then click the `Go!` button (or hit `return` in one of the text fields). The results are presented below in a table. If no data is returned, the table will indicate that fact. Usually that indicates you specified a time range for which there is no data. (The data range in the data set is not that big). Try date ranges in February, 2008. Also, if you use a wide range, you will get a **lot** of data back and the query will take a while. 
 
 **Note:** Currently, data for *all* stocks in the corresponding A-Z table is returned, not just for the symbols you entered! 
 
-We plan to add charting of this data in a few weeks.
+When you get a table of data. You can click on the column headers to sort the data by that column. Click again to reverse the sort.
+
+We will add better filtering of stock symbols and graphing the data over the next several weeks.
 
 The `Ping` button is a diagnostic tool. It checks whether or not the Akka "actors" are still responsive in the application. It will return a list of actors running. If you click it before asking for stock data (with the `Go!` button), only one actor will be listed (There is a bug in the display currently...). Afterwards, 5 or more actors will be listed.
 

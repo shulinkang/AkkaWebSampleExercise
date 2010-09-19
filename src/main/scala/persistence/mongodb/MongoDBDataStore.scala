@@ -5,6 +5,7 @@ import se.scalablesolutions.akka.config.Config.config
 import se.scalablesolutions.akka.util.Logging
 import scala.collection.immutable.SortedSet
 import org.joda.time._
+import org.joda.time.format._
 import net.liftweb.json.JsonAST._
 import net.liftweb.json.JsonDSL._
 import com.osinka.mongodb._
@@ -69,13 +70,16 @@ class MongoDBDataStore(
   
   // Hack!
   def getInstrumentList(prefix: String): Iterable[JSONRecord] = try {
-    val list = collection.distinct(prefix)
+	  // TODO: We hard-code the name of the thing we want, the "stock_symbol". Should be abstracted...
+    val list = collection.distinct("stock_symbol")
     val buff = new scala.collection.mutable.ArrayBuffer[String]()
     var iter = list.iterator
     while (iter.hasNext) {
       buff += iter.next.toString
     }
-    List(JSONRecord(("letter" -> prefix) ~ ("symbols" -> buff)))
+    // Must put in a timestamp to make JSONRecord happy:
+    val format = DateTimeFormat.forPattern("yyyy-MM-dd")
+    List(JSONRecord(("date" -> format.print(new DateTime)) ~ ("letter" -> prefix) ~ ("symbols" -> buff.toList)))
   } catch {
     case th => 
       log.error("MongoDB Exception: ", th)

@@ -66,16 +66,24 @@ class RestfulDataPublisher extends Logging {
       case "stats" =>
         log.debug("Requesting statistics for instruments, stats, start, end = "+instruments+", "+stats+", "+start+", "+end)
         getAllDataFor(instruments, stats, start, end)
-        
+      case "list_stocks" =>
+         getAllInstruments(instruments)
       case x => """{"error": "Unrecognized 'action': """ + action + "\"}"
     }
     
   // Scoped to the "rest" package so tests can call it directly (bypassing actor logic...)
   protected[rest] def getAllDataFor(instruments: String, stats: String, start: String, end: String): String = 
     try {
-      val allCriteria = CriteriaMap().withInstruments(instruments).withStatistics(stats).withStart(start).withEnd(end)
-      val results = getStatsFromInstrumentAnalysisServerSupervisors(CalculateStatistics(allCriteria))
-      val result = compact(render(JSONMap.toJValue(Map("financial-data" -> results))))
+     val symbolRange = instruments.trim match {//changes starts from here
+     case "" => 'A' to 'Z'  // default
+     case s  => s.length match {
+        case 1 => 'A' to s.charAt(0).toUpper  // 1 character; use as end
+        case n => s.charAt(0).toUpper to s.charAt(n-1).toUpper
+      }
+     }
+    val results = getStatsFromInstrumentAnalysisServerSupervisors(GetInstrumentList(symbolRange))
+    val result = compact(render(JSONMap.toJValue(Map("instrument-list" -> results))))//This is what make changes ends
+      
       val length = if (result.length > 100) 100 else result.length
       log.info("financial data result = "+result.substring(0, length)+"...")
       result

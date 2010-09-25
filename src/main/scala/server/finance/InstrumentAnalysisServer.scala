@@ -85,8 +85,8 @@ class InstrumentAnalysisServerHelper(dataStorageServer: => ActorRef) {
       case None => 
         Pair("warning", "Nothing returned for instrument list in range "+range)
       case Some(result) => 
-					 log.info("IS: result = "+result)
-					 result
+	log.info("IS: result = "+result)
+	result
     }
   }
 
@@ -119,6 +119,19 @@ class InstrumentAnalysisServerHelper(dataStorageServer: => ActorRef) {
     val fullResults = toJValue(Map("criteria" -> toNiceFormat(instruments, statistics, start, end), "results" -> results))
     fullResults
   }
+
+/**Implement formatInstrumentListResult
+*/
+
+def formatInstrumentListResults(json: JValue,range:scala.collection.immutable.NumericRange[Char]):JValue={
+  val results = json match {
+      case JNothing => toJValue(Nil)  // Use an empty array as the result
+      case x => x
+    }
+    //val fullResults = toJValue(Map("criteria" -> toNiceFormat(instruments, statistics, start, end), "results" -> results))
+ val fullResults = toJValue(Map(range -> range.toString, "results" -> results))
+    fullResults
+}
   
   /** Extract and format the data so it's more convenient when returned to the UI. */
   protected def toNiceFormat(instruments: List[Instrument], statistics: List[InstrumentStatistic], start: DateTime, end: DateTime): Map[String, Any] = 

@@ -12,7 +12,7 @@ val dividendsRE = """^\s*(\{\s*"date"[^}]+\}),?\s*$""".r
 (new File("datatmp")).mkdir
 val prefix = "stocks_yahoo_NYSE_"
 
-for (c <- 'A' to 'Z') {
+for (c <- 'A' to 'E') {
   // Ugly Java for file I/O...
   val inputFileName = "data/stocks_yahoo_NYSE-yaml/" + prefix + c + ".yaml"
   println("Processing: data/stocks_yahoo_NYSE-yaml/" + prefix + c + ".yaml")

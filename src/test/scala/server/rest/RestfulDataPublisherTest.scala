@@ -79,12 +79,18 @@ class RestfulDataPublisherTest extends FunSuite
   
   // TODO
   test ("getAllDataFor returns a JSON string containing all data that matches the instrument criteria") {
-    pending
+    //pending
+    returnedJSON = makeJSON (List(js(3), js(2)))
+    restfulPublisher.getAllDataFor("A,C" , "price" , (thenms + 1000).toString, (thenms + 2500).toString) should equal (
+      makeJSONString(makeExpected(returnedJSON)))
   }
   
   // TODO
   test ("getAllDataFor returns a JSON string containing all data that matches the statistics criteria") {
-    pending
+    //pending
+    returnedJSON = makeJSON (List(js(3)))
+    restfulPublisher.getAllDataFor("C" , "price" , (thenms + 1000).toString, (thenms + 1500).toString) should equal (
+      makeJSONString(makeExpected(returnedJSON)))
   }
   
   test ("if one or both input times are invalid, getAllDataFor should return an error message") {

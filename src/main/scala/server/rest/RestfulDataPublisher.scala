@@ -73,38 +73,31 @@ class RestfulDataPublisher extends Logging {
     
   // Scoped to the "rest" package so tests can call it directly (bypassing actor logic...)
   protected[rest] def getAllDataFor(instruments: String, stats: String, start: String, end: String): String = 
-    try {
-     val symbolRange = instruments.trim match {//changes starts from here
-     case "" => 'A' to 'Z'  // default
-     case s  => s.length match {
-        case 1 => 'A' to s.charAt(0).toUpper  // 1 character; use as end
-        case n => s.charAt(0).toUpper to s.charAt(n-1).toUpper
-      }
-     }
-    val results = getStatsFromInstrumentAnalysisServerSupervisors(GetInstrumentList(symbolRange))
-    val result = compact(render(JSONMap.toJValue(Map("instrument-list" -> results))))//This is what make changes ends
-      
+     try {
+      val allCriteria = CriteriaMap().withInstruments(instruments).withStatistics(stats).withStart(start).withEnd(end)
+      val results = getStatsFromInstrumentAnalysisServerSupervisors(CalculateStatistics(allCriteria))
+      val result = compact(render(JSONMap.toJValue(Map("financial-data" -> results))))
       val length = if (result.length > 100) 100 else result.length
       log.info("financial data result = "+result.substring(0, length)+"...")
       result
     } catch {
       case NoWorkersAvailable =>
         makeErrorString("", NoWorkersAvailable, instruments, stats, start, end)
-      case iae: CriteriaMap.InvalidTimeString => 
+      case iae: CriteriaMap.InvalidTimeString =>
         makeErrorString("", iae, instruments, stats, start, end)
       case fte: FutureTimeoutException =>
         makeErrorString("Actors timed out", fte, instruments, stats, start, end)
       case awsee: AkkaWebSampleExerciseException =>
         makeErrorString("Invalid input", awsee, instruments, stats, start, end)
-      case th: Throwable => 
-        makeErrorString("An unexpected problem occurred during processing the request", 
+      case th: Throwable =>
+        makeErrorString("An unexpected problem occurred during processing the request",
           th, instruments, stats, start, end)
     }
     
-  protected[rest] def getAllInstruments(instruments: String) = 
+  protected[rest] def getAllInstruments(instruments: String):String = 
     try {
       // Hack! Just grab the first and last letter.
-			val symbolRange = instruments.trim match {
+      val symbolRange = instruments.trim match {
         case "" => 'A' to 'Z'
         case s  => s.length match {
           case 1 => s.charAt(0).toUpper to 'Z'
@@ -112,10 +105,10 @@ class RestfulDataPublisher extends Logging {
         }
       }
       val results = getStatsFromInstrumentAnalysisServerSupervisors(GetInstrumentList(symbolRange))
-      log.info("Rest: instruments results: "+results)
+      //log.info("Rest: instruments results: "+results)
       val result = compact(render(JSONMap.toJValue(Map("instrument-list" -> results))))
-      val length = if (result.length > 200) 200 else result.length
-      log.info("instrument list result = "+result.substring(0,length)+"...")
+      //val length = if (result.length > 200) 200 else result.length
+      //log.info("instrument list result = "+result.substring(0,length)+"...")
       result
     } catch {
       case NoWorkersAvailable =>

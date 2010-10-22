@@ -12,17 +12,17 @@ import org.joda.time._
 import net.liftweb.json.JsonAST._
 import net.liftweb.json.JsonDSL._
 
-class InstrumentAnalysisServerTest extends FunSuite 
+class InstrumentAnalysisServerTest extends FunSuite
     with ShouldMatchers with BeforeAndAfterEach {
 
-  val now          = new DateTime
-  val nowms        = now.getMillis
-  val thenms       = nowms - 10000
-  val then         = new DateTime(nowms - 10000)
-  val epochStart   = new DateTime(0)
+  val now = new DateTime
+  val nowms = now.getMillis
+  val thenms = nowms - 10000
+  val then = new DateTime(nowms - 10000)
+  val epochStart = new DateTime(0)
 
   val js = List(
-    makeJSONRecord(thenms,        "A",  0.0),
+    makeJSONRecord(thenms, "A", 0.0),
     makeJSONRecord(thenms + 4000, "A", 40.0),
     makeJSONRecord(thenms + 2000, "A", 20.0),
     makeJSONRecord(thenms + 1000, "C", 10.0),
@@ -38,14 +38,14 @@ class InstrumentAnalysisServerTest extends FunSuite
   
   def makeJSONString(json: JValue): String = compact(render(json))
 
-  def makeCriteria(instruments: String, stats: String, start: Long, end: Long) = 
+  def makeCriteria(instruments: String, stats: String, start: Long, end: Long) =
     CriteriaMap().
       withInstruments(instruments).
       withStatistics(stats).
-      withStart(start). 
+      withStart(start).
       withEnd(end)
 
-  def makeExpected(json: JValue, criteria: CriteriaMap) = 
+  def makeExpected(json: JValue, criteria: CriteriaMap) =
     analysisServer.formatPriceResults(
       json, criteria.instruments, criteria.statistics, criteria.start, criteria.end)
   
@@ -65,7 +65,7 @@ class InstrumentAnalysisServerTest extends FunSuite
   override def beforeEach = {
     testDataStore = new InMemoryDataStore("testDataStore")
     dss = actorOf(new DataStorageServer("testService", testDataStore))
-    analysisServer = new InstrumentAnalysisServerHelper(dss) 
+    analysisServer = new InstrumentAnalysisServerHelper(dss)
     driverActor = actorOf(new Actor {
       def receive = {
         case msg => (dss !!! msg).await.result match {
@@ -104,20 +104,15 @@ class InstrumentAnalysisServerTest extends FunSuite
 
   // TODO
   test ("calculateStatistics returns a JSON string containing all data that matches the instrument criteria") {
-<<<<<<< HEAD
-    //pending
-    val criteria = makeCriteria("A","price", 0, nowms)
-=======
     pending
     val criteria = makeCriteria("A", "price", 0, nowms)
->>>>>>> deanwampler-origin/exercise4_start
     val expected = makeExpected(makeJSON((List(js(0), js(1), js(2)))), criteria)
     analysisServer.calculateStatistics(criteria) should equal (expected)
   }
 
   // TODO
   test ("calculateStatistics returns a JSON string containing all data that matches the statistics criteria") {
-    //pending
+    pending
     val criteria1 = makeCriteria("A,B,C", "price", 0, nowms)
     val criteria2 = makeCriteria("A,B,C", "50dma", 0, nowms)
     val expected1 = makeExpected(makeJSON((List(js(0), js(3), js(2), js(4), js(1)))), criteria1)

@@ -21,35 +21,35 @@ class RestfulDataPublisher extends Logging {
   val actorName = "RestfulDataPublisher"
   
   /**
-   * Handle a rest request. The following "actions" are supported:
-   *   stats:   Calculate and return statistics for financial instruments, subject to the URL options: 
-   *              ?start=long&end=long&symbols=i1,i1,...&stats=s1,s2,...
-   *            where
-   *              "start"   is the starting date, inclusive (default: earliest available).
-   *              "end"     is the ending date, inclusive (default: latest available).
-   *              "symbols" is the comma-separated list of instruments by "symbol" to analyze (default: all available).
-   *              "stats"   is the comma-separated list of statistics to calculate (default: all available).
-   *            The allowed date time formats include milliseconds (Long) and any date time string that can be parsed
-   *            by JodaTime.
-   *   list_instruments: Return a list of the symbols of all the financial instruments. 
-   *   ping:    Send a "ping" message to each actor and return the responses.
-   *   <other>  If any other message is received, an error response is returned.
-   * @todo: It would be nice to use an HTML websocket to stream results to the browser more dynamically.
-   * Consider also Atmosphere 6 and its JQuery plugin as an abstraction that supports
-   * websockets, but can degrade to Comet, etc., when used with a browser-server combination that doesn't support
-   * websockets (@see http://jfarcand.wordpress.com/2010/06/15/using-atmospheres-jquery-plug-in-to-build-applicationsupporting-both-websocket-and-comet/).
-   */
+* Handle a rest request. The following "actions" are supported:
+* stats: Calculate and return statistics for financial instruments, subject to the URL options:
+* ?start=long&end=long&symbols=i1,i1,...&stats=s1,s2,...
+* where
+* "start" is the starting date, inclusive (default: earliest available).
+* "end" is the ending date, inclusive (default: latest available).
+* "symbols" is the comma-separated list of instruments by "symbol" to analyze (default: all available).
+* "stats" is the comma-separated list of statistics to calculate (default: all available).
+* The allowed date time formats include milliseconds (Long) and any date time string that can be parsed
+* by JodaTime.
+* list_instruments: Return a list of the symbols of all the financial instruments.
+* ping: Send a "ping" message to each actor and return the responses.
+* <other> If any other message is received, an error response is returned.
+* @todo: It would be nice to use an HTML websocket to stream results to the browser more dynamically.
+* Consider also Atmosphere 6 and its JQuery plugin as an abstraction that supports
+* websockets, but can degrade to Comet, etc., when used with a browser-server combination that doesn't support
+* websockets (@see http://jfarcand.wordpress.com/2010/06/15/using-atmospheres-jquery-plug-in-to-build-applicationsupporting-both-websocket-and-comet/).
+*/
   @GET
   @Path("{action}")
   @Produces(Array("application/json"))
   def restRequest(
-      @PathParam("action") action: String, 
-      @DefaultValue("0")  @QueryParam("start")   start: String,
-      @DefaultValue("-1") @QueryParam("end")     end: String,
-      @DefaultValue("")   @QueryParam("symbols") instruments: String,
-      @DefaultValue("")   @QueryParam("stats")   stats: String): String = 
+      @PathParam("action") action: String,
+      @DefaultValue("0") @QueryParam("start") start: String,
+      @DefaultValue("-1") @QueryParam("end") end: String,
+      @DefaultValue("") @QueryParam("symbols") instruments: String,
+      @DefaultValue("") @QueryParam("stats") stats: String): String =
     action match {
-      case "ping" => 
+      case "ping" =>
         log.info("Pinging actors...")
         val results = for {
           supervisor <- instrumentAnalysisServerSupervisors
@@ -66,14 +66,13 @@ class RestfulDataPublisher extends Logging {
       case "stats" =>
         log.debug("Requesting statistics for instruments, stats, start, end = "+instruments+", "+stats+", "+start+", "+end)
         getAllDataFor(instruments, stats, start, end)
-      case "list_stocks" =>
-         getAllInstruments(instruments)
+        
       case x => """{"error": "Unrecognized 'action': """ + action + "\"}"
     }
     
   // Scoped to the "rest" package so tests can call it directly (bypassing actor logic...)
-  protected[rest] def getAllDataFor(instruments: String, stats: String, start: String, end: String): String = 
-     try {
+  protected[rest] def getAllDataFor(instruments: String, stats: String, start: String, end: String): String =
+    try {
       val allCriteria = CriteriaMap().withInstruments(instruments).withStatistics(stats).withStart(start).withEnd(end)
       val results = getStatsFromInstrumentAnalysisServerSupervisors(CalculateStatistics(allCriteria))
       val result = compact(render(JSONMap.toJValue(Map("financial-data" -> results))))
@@ -94,41 +93,33 @@ class RestfulDataPublisher extends Logging {
           th, instruments, stats, start, end)
     }
     
-  protected[rest] def getAllInstruments(instruments: String):String = 
+  protected[rest] def getAllInstruments(instruments: String) =
     try {
       // Hack! Just grab the first and last letter.
-      val symbolRange = instruments.trim match {
+val symbolRange = instruments.trim match {
         case "" => 'A' to 'Z'
-        case s  => s.length match {
+        case s => s.length match {
           case 1 => s.charAt(0).toUpper to 'Z'
           case n => s.charAt(0).toUpper to s.charAt(n-1).toUpper
         }
       }
-<<<<<<< HEAD
-      val results = getStatsFromInstrumentAnalysisServerSupervisors(GetInstrumentList(symbolRange))
-      //log.info("Rest: instruments results: "+results)
-      val result = compact(render(JSONMap.toJValue(Map("instrument-list" -> results))))
-      //val length = if (result.length > 200) 200 else result.length
-      //log.info("instrument list result = "+result.substring(0,length)+"...")
-=======
       val results = getStatsFromInstrumentAnalysisServerSupervisors(GetInstrumentList(symbolRange, "stock_symbol"))
       log.info("Rest: instruments results: "+results)
       val result = compact(render(JSONMap.toJValue(
           Map("instrument-list" -> results, "instrument_symbols_key" -> "stock_symbol"))))
       val length = if (result.length > 200) 200 else result.length
       log.info("instrument list result = "+result.substring(0,length)+"...")
->>>>>>> deanwampler-origin/exercise4_start
       result
     } catch {
       case NoWorkersAvailable =>
         makeAllInstrumentsErrorString(instruments, "", NoWorkersAvailable)
-      case iae: CriteriaMap.InvalidTimeString => 
+      case iae: CriteriaMap.InvalidTimeString =>
         makeAllInstrumentsErrorString(instruments, "", iae)
       case fte: FutureTimeoutException =>
         makeAllInstrumentsErrorString(instruments, "Actors timed out", fte)
       case awsee: AkkaWebSampleExerciseException =>
         makeAllInstrumentsErrorString(instruments, "Invalid input", awsee)
-      case th: Throwable => 
+      case th: Throwable =>
         makeAllInstrumentsErrorString(instruments, "An unexpected problem occurred during processing the request", th)
     }
     
@@ -147,9 +138,9 @@ class RestfulDataPublisher extends Logging {
   protected def instrumentAnalysisServerSupervisors =
     ActorRegistry.actorsFor(classOf[InstrumentAnalysisServerSupervisor]).toList
   
-  protected def makeErrorString(message: String, th: Throwable, 
+  protected def makeErrorString(message: String, th: Throwable,
       instruments: String, stats: String, start: String, end: String) =
-    "{\"error\": \"" + (if (message.length > 0) (message + ". ") else "") + th.getMessage + ". Investment instruments = '" + 
+    "{\"error\": \"" + (if (message.length > 0) (message + ". ") else "") + th.getMessage + ". Investment instruments = '" +
       instruments + "', statistics = '" + stats + "', start = '" + start + "', end = '" + end + "'.\"}"
 
   protected def makeAllInstrumentsErrorString(instruments: String, message: String, th: Throwable) =

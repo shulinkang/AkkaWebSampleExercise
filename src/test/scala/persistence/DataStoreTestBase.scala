@@ -51,7 +51,7 @@ abstract class DataStoreTestBase extends FunSuite with ShouldMatchers {
   test("range returns a subset of a DataStore from a starting bounds upto AND including an upper bound should return a Traversable with the correct subset") {
     populateDataStore(100)
 
-    val range = dataStore.range(new DateTime(20L), new DateTime(25L),Map.empty).toList
+    val range = dataStore.range(new DateTime(20L), new DateTime(25L)).toList
     range zip (List(makeTR(20L, 200), makeTR(21L, 210), makeTR(22L, 220), makeTR(23L, 230), makeTR(24L, 240), makeTR(25L, 250))) map {
       pair => pair._1 equalsIgnoringId pair._2
     }
@@ -90,7 +90,7 @@ abstract class DataStoreTestBase extends FunSuite with ShouldMatchers {
   
   test("If the start is < 0, range uses 0. If the to is > size, range uses size" ) {
     populateDataStore(100, 0)
-    val range = dataStore.range(new DateTime(-1L), new DateTime(101L),Map.empty).toList
+    val range = dataStore.range(new DateTime(-1L), new DateTime(101L)).toList
     range.size should equal (101)
     range.foreach { rec => 
       val ts = rec.timestamp.getMillis
@@ -107,7 +107,7 @@ abstract class DataStoreTestBase extends FunSuite with ShouldMatchers {
   test("range returns an empty equence if the start is > the end") {
     populateDataStore(100, 0)
     for (n <- List(0L, 10L, 99L)) {
-      val range = dataStore.range(new DateTime(n+1), new DateTime(n),Map.empty)
+      val range = dataStore.range(new DateTime(n+1), new DateTime(n))
       range.size should equal (0)
     }
   }
@@ -115,14 +115,14 @@ abstract class DataStoreTestBase extends FunSuite with ShouldMatchers {
   test("range returns a one-element sequence if the start is = the end") {
     populateDataStore(100, 0)
     for (n <- List(0L, 10L, 99L)) {
-      val range = dataStore.range(new DateTime(n), new DateTime(n), Map.empty)
+      val range = dataStore.range(new DateTime(n), new DateTime(n))
       range.size should equal (1)
     }
   }
 
   test("for big data set, range returns expected data") {
     populateDataStore(20000, 0)
-    val range1 = dataStore.range(new DateTime(-10), new DateTime(10000), Map.empty)
+    val range1 = dataStore.range(new DateTime(-10), new DateTime(10000))
     range1.size should equal (10001)
     range1.head equalsIgnoringId makeTR(0,0) should be (true)
     range1.last equalsIgnoringId makeTR(10000,100000) should be (true)

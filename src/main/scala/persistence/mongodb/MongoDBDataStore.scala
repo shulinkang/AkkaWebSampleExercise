@@ -53,20 +53,26 @@ class MongoDBDataStore(
     case Some(dbo) => Some(JSONRecord(dbo.toMap))
   }
   
-  def range(from: DateTime, to: DateTime, otherCriteria: Map[String,Any] = Map.empty, maxNum: Int): Iterable[JSONRecord] = try {
+  def range(from: DateTime, to: DateTime, otherCriteria: Map[String,Any]= Map.empty, maxNum: Int): Iterable[JSONRecord] = try {
 //add method here to query with 'otherCriteria'
 //create MongoDBList object
-    val sList = new com.mongodb.BasicDBList
+ 
+   val sList = new com.mongodb.BasicDBList
+
 //add the criterias elements into the MongoDbList
-    if(otherCriteria.contains("stock_symbol")){
+   
+ if(otherCriteria.contains("stock_symbol")){
      for(s <- otherCriteria("stock_symbol").asInstanceOf[List[String]]) 
-       sList.add(s)
+     sList.add(s)
     }
+
+log.info("BasicDBList:"+ otherCriteria.contains("stock_symbol"))
 
     val qb = new com.mongodb.QueryBuilder
     qb.and(JSONRecord.timestampKey).
       greaterThanEquals(dateTimeToAnyValue(from)).
       lessThanEquals(dateTimeToAnyValue(to)).and("stock_symbol").in(sList)
+    
     val query = qb.get
     val cursor = collection.find(query).sort(new BasicDBObject(JSONRecord.timestampKey, 1))
     log.info("db name: query, cursor.count, maxNum: "+collection.getFullName+", "+query+", "+cursor.count+", "+maxNum)

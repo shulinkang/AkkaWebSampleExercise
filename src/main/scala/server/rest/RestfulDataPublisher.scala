@@ -76,7 +76,7 @@ class RestfulDataPublisher extends Logging {
       val allCriteria = CriteriaMap().withInstruments(instruments).withStatistics(stats).withStart(start).withEnd(end)
       val results = getStatsFromInstrumentAnalysisServerSupervisors(CalculateStatistics(allCriteria))
       val result = compact(render(JSONMap.toJValue(Map("financial-data" -> results))))
-      val length = if (result.length > 100) 100 else result.length
+      val length = if (result.length > 500) 500 else result.length
       log.info("financial data result = "+result.substring(0, length)+"...")
       result
     } catch {
@@ -96,7 +96,7 @@ class RestfulDataPublisher extends Logging {
   protected[rest] def getAllInstruments(instruments: String) =
     try {
       // Hack! Just grab the first and last letter.
-val symbolRange = instruments.trim match {
+    val symbolRange = instruments.trim match {
         case "" => 'A' to 'Z'
         case s => s.length match {
           case 1 => s.charAt(0).toUpper to 'Z'

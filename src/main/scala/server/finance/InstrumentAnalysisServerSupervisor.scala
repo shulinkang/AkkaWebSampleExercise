@@ -37,8 +37,9 @@ class InstrumentAnalysisServerSupervisor extends Actor with ActorFactory with Ac
 
   def defaultHandler: PartialFunction[Any,Unit] = {
     case CalculateStatistics(criteria) => self.reply(calculate(criteria))
-    case GetInstrumentList(range, keyForInstrumentSymbols) => self.reply(getInstrumentList(range, keyForInstrumentSymbols))
-  }
+ //   case GetInstrumentList(range) => self.reply(getInstrumentList(range))
+
+    case GetInstrumentList(range, keyForInstrumentSymbols) => self.reply(getInstrumentList(range, keyForInstrumentSymbols))}
   
   /**
    * Ping the InstrumentAnalysisServers (if any currently exist) and return their responses.

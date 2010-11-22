@@ -13,7 +13,7 @@
   </listener>
   
   <servlet>
-		<servlet-name>AkkaServlet</servlet-name>
+<servlet-name>AkkaServlet</servlet-name>
     <servlet-class>se.scalablesolutions.akka.comet.AkkaServlet</servlet-class>
     <init-param>
         <param-name>com.sun.jersey.config.property.packages</param-name>

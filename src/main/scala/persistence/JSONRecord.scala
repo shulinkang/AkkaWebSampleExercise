@@ -23,7 +23,7 @@ case class JSONRecord(json: JValue) {
     
   /** Merge two records. The "other's" JSON overwrites matching keys in this JSON. */
   def merge(other: JSONRecord): JSONRecord = this merge other.json
-  def merge(other: JValue): JSONRecord     = JSONRecord(json merge other)
+  def merge(other: JValue): JSONRecord = JSONRecord(json merge other)
 
   override def toString = json.toString
   def toJSONString = compact(render(json))

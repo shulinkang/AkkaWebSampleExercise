@@ -15,9 +15,9 @@ function formatDate(date) {
 }
 
 function setupDefaultDates() {
-  var today = new Date()
-  $('#start').val(formatDate(today))
-  $('#end').val(formatDate(today))
+  //var today = new Date()
+  $('#start').val(formatDate(new Date(2000,8,2)))
+  $('#end').val(formatDate(new Date(2008,3,7)))
 }
 
 function submitOnCarriageReturn(elements, controlsParent) {
@@ -262,7 +262,7 @@ function setupDatePicker(){
     // clickInput:  true,
     startDate:   '1970-01-01',
     endDate:     today,
-    defaultDate: today
+    defaultDate: '2008-03-08'
   });
   $('.date-pick').dpSetOffset(25,0);
 }
@@ -271,9 +271,9 @@ $(document).ready(function () {
   $('.icon').click(function(){
     $('.banner').fadeIn('slow');
     $('.banner').fadeOut(2000);
-  })
-  setupDatePicker()
-  setupDefaultDates()
+  });
+  setupDatePicker();
+  setupDefaultDates();
   submitOnCarriageReturn($('.submit-on-CR'), $('#master-toolbar'))
 });
 
